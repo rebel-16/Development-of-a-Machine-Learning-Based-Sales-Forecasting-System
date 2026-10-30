@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading"><p class="eyebrow">DATA SETUP</p><h1>Upload Sales Data</h1><p class="text-secondary mb-0">Upload a CSV file to use it on the dashboard and analysis pages.</p></section>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} py-2" role="alert">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<section class="content-panel narrow-panel mt-4">
+    <div class="panel-heading"><div><h2>Choose a CSV file</h2><p>Files are limited to 5 MB.</p></div><i class="panel-icon bi bi-file-earmark-arrow-up"></i></div>
+    <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+        <label class="form-label fw-semibold" for="sales-file">Select sales data file</label>
+        <input class="form-control form-control-lg" id="sales-file" name="sales_file" type="file" accept=".csv,text/csv" required>
+        <div class="form-text mt-2">Required columns: Date and Sales. Extra columns are allowed. Use one date and one numeric sales amount per row.</div>
+        <button class="btn btn-primary mt-4" type="submit"><i class="bi bi-upload me-2"></i>Upload CSV</button>
+        <a class="btn btn-outline-secondary mt-4 ms-2" href="{{ url_for('download_sample_data') }}"><i class="bi bi-download me-2"></i>Download sample CSV</a>
+    </form>
+    <div class="notice-box mt-4"><i class="bi bi-info-circle"></i><span>Rows with invalid dates or sales values are skipped. A file must contain at least one valid record.</span></div>
+</section>
+
+<section class="content-panel mt-4">
+    <div class="panel-heading">
+        <div><h2>Selected dataset</h2><p>Currently using <strong>{{ dataset_filename }}</strong>. The dashboard and monthly analysis use this dataset.</p></div>
+        <span class="panel-tag">{{ record_count }} valid records</span>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6"><div class="kpi-card"><div class="kpi-top"><span>Total Sales</span><i class="bi bi-currency-rupee"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(total_sales) }}</p></div></div>
+        <div class="col-12 col-md-6"><div class="kpi-card"><div class="kpi-top"><span>Average Sales</span><i class="bi bi-bar-chart-line"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(average_sales) }}</p></div></div>
+    </div>
+    <h3 class="h6 mb-3">First 10 rows</h3>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead><tr>{% for column in preview_columns %}<th scope="col" class="{{ 'text-end' if column == 'Sales' else '' }}">{{ column }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {% for record in preview_records %}
+                <tr>
+                    {% for column in preview_columns %}
+                    <td class="{{ 'text-end' if column == 'Sales' else '' }}">
+                        {% if column == "Sales" %}₹{{ "{:,.0f}".format(record[column]) }}{% else %}{{ record[column] }}{% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% else %}
+                <tr><td class="empty-table" colspan="{{ preview_columns|length }}">No valid sales records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

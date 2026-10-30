@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <p class="eyebrow">OVERVIEW</p>
+        <h1>Dashboard</h1>
+        <p class="text-secondary mb-0">A clear view of your sales forecasting workspace.</p>
+    </div>
+    <span class="status-pill"><span class="status-dot"></span> Using {{ dataset_filename }}</span>
+</section>
+
+<section class="row g-3 mt-2" aria-label="Sales summary">
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Total Sales</span><i class="bi bi-currency-rupee"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(total_sales) }}</p><p class="kpi-note">Across {{ record_count }} valid records</p></article></div>
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Sales Records</span><i class="bi bi-receipt"></i></div><p class="kpi-value">{{ "{:,.0f}".format(record_count) }}</p><p class="kpi-note">Valid dated sales entries</p></article></div>
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Average Sales</span><i class="bi bi-bar-chart-line"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(average_sales) }}</p><p class="kpi-note">Average per valid record</p></article></div>
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Highest Sales</span><i class="bi bi-graph-up-arrow"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(highest_sales) }}</p><p class="kpi-note">Highest single-record value</p></article></div>
+</section>
+
+<section class="content-panel mt-4">
+    <div class="panel-heading"><div><h2>Historical Sales Trend</h2><p>Chart preview will appear after data is connected.</p></div><span class="panel-tag">Chart placeholder</span></div>
+    <div class="chart-placeholder" role="img" aria-label="Empty chart area for historical sales trend"><div class="chart-empty-state"><i class="bi bi-bar-chart"></i><strong>Historical chart area</strong><span>Sales data and chart functionality are not set up yet.</span></div></div>
+</section>
+
+<section class="content-panel mt-4">
+    <div class="panel-heading"><div><h2>Recent Forecasts</h2><p>Forecast results are generated on the Sales Forecasting page.</p></div><a class="text-link" href="{{ url_for('forecast') }}">Open forecasting <i class="bi bi-arrow-up-right"></i></a></div>
+    <div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th scope="col">Forecast</th><th scope="col">Frequency</th><th scope="col">Created</th><th scope="col">Status</th></tr></thead><tbody><tr><td colspan="4" class="empty-table">Forecast history is not saved yet. Run a forecast to view its results.</td></tr></tbody></table></div>
+</section>
+{% endblock %}

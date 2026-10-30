@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading"><p class="eyebrow">EXPLORE</p><h1>Sales Analysis</h1><p class="text-secondary mb-0">Monthly summary for {{ dataset_filename }}.</p></section>
+<div class="row g-3 mt-2">
+    <div class="col-12">
+        <section class="content-panel">
+            <div class="panel-heading"><div><h2>Monthly Sales Summary</h2><p>Total sales grouped by calendar month from the selected dataset.</p></div><span class="panel-tag">{{ monthly_records|length }} months</span></div>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead><tr><th scope="col">Month</th><th scope="col" class="text-end">Total Sales</th></tr></thead>
+                    <tbody>
+                        {% for record in monthly_records %}
+                        <tr><td>{{ record["Month"] }}</td><td class="text-end">₹{{ "{:,.0f}".format(record["Sales"]) }}</td></tr>
+                        {% else %}
+                        <tr><td class="empty-table" colspan="2">No monthly totals available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <div class="col-12"><section class="content-panel"><div class="panel-heading"><div><h2>Sales Trends</h2><p>Historical sales over time.</p></div><span class="panel-tag">Chart not implemented yet</span></div><div class="chart-placeholder compact-chart"><div class="chart-empty-state"><i class="bi bi-activity"></i><strong>Trend chart placeholder</strong><span>Connect sales data to display trends.</span></div></div></section></div>
+    <div class="col-12 col-lg-6"><section class="content-panel h-100"><div class="panel-heading"><div><h2>Category Analysis</h2><p>Sales breakdown by category.</p></div></div><div class="chart-placeholder compact-chart"><div class="chart-empty-state"><i class="bi bi-pie-chart"></i><strong>Category chart placeholder</strong><span>Category analysis is not implemented.</span></div></div></section></div>
+    <div class="col-12 col-lg-6"><section class="content-panel h-100"><div class="panel-heading"><div><h2>Analysis Summary</h2><p>Key observations from your data.</p></div></div><div class="summary-placeholder"><i class="bi bi-clipboard-data"></i><p class="mb-1 fw-semibold">No analysis available</p><p class="mb-0">Summary values will appear after analysis features are added.</p></div></section></div>
+</div>
+{% endblock %}

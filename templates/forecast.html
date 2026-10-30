@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">PREDICTION SETUP</p>
+    <h1>Sales Forecasting</h1>
+    <p class="text-secondary mb-0">Fit a simple time-trend model to the currently selected sales dataset.</p>
+</section>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} py-2" role="alert">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<section class="content-panel narrow-panel mt-4">
+    <div class="panel-heading">
+        <div><h2>Forecast settings</h2><p>Dataset: <strong>{{ dataset_filename }}</strong></p></div>
+        <i class="panel-icon bi bi-graph-up-arrow"></i>
+    </div>
+    <form method="post" action="{{ url_for('forecast') }}">
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="frequency">Forecasting frequency</label>
+            <select class="form-select" id="frequency" name="frequency">
+                <option value="daily" {{ 'selected' if frequency == 'daily' else '' }}>Daily</option>
+                <option value="monthly" {{ 'selected' if frequency == 'monthly' else '' }}>Monthly</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="horizon">Forecast horizon</label>
+            <select class="form-select" id="horizon" name="horizon">
+                <option value="7" data-frequency="daily" {{ 'selected' if frequency == 'daily' and horizon == '7' else '' }}>7 days</option>
+                <option value="14" data-frequency="daily" {{ 'selected' if frequency == 'daily' and horizon == '14' else '' }}>14 days</option>
+                <option value="30" data-frequency="daily" {{ 'selected' if frequency == 'daily' and horizon == '30' else '' }}>30 days</option>
+                <option value="3" data-frequency="monthly" {{ 'selected' if frequency == 'monthly' and horizon == '3' else '' }}>3 months</option>
+                <option value="6" data-frequency="monthly" {{ 'selected' if frequency == 'monthly' and horizon == '6' else '' }}>6 months</option>
+                <option value="12" data-frequency="monthly" {{ 'selected' if frequency == 'monthly' and horizon == '12' else '' }}>12 months</option>
+            </select>
+        </div>
+        <button class="btn btn-primary mt-2" type="submit"><i class="bi bi-stars me-2"></i>Generate Forecast</button>
+    </form>
+    <div class="notice-box mt-4"><i class="bi bi-info-circle"></i><span>Missing dates or months are treated as zero sales. Linear Regression follows a straight trend and does not model holidays or other seasonal factors.</span></div>
+</section>
+
+{% if forecast_result %}
+<section class="row g-3 mt-2" aria-label="Forecast summary">
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Total Predicted Sales</span><i class="bi bi-currency-rupee"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(forecast_result.total_predicted_sales) }}</p><p class="kpi-note">{{ forecast_result.horizon }} future {{ forecast_result.frequency_label|lower }} periods</p></article></div>
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Average Prediction</span><i class="bi bi-bar-chart-line"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(forecast_result.average_predicted_sales) }}</p><p class="kpi-note">Per future period</p></article></div>
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Validation MAE</span><i class="bi bi-rulers"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(forecast_result.validation_mae) }}</p><p class="kpi-note">Mean absolute error, not a percentage</p></article></div>
+    <div class="col-12 col-sm-6 col-xl-3"><article class="kpi-card"><div class="kpi-top"><span>Validation RMSE</span><i class="bi bi-bullseye"></i></div><p class="kpi-value">₹{{ "{:,.0f}".format(forecast_result.validation_rmse) }}</p><p class="kpi-note">Root mean squared error</p></article></div>
+</section>
+
+{% if forecast_result.validation_r2 is not none %}
+<p class="text-secondary small mt-3">Validation R²: {{ "%.3f"|format(forecast_result.validation_r2) }}. R² is shown only when the validation sales have enough variation.</p>
+{% endif %}
+
+{% if forecast_result.negative_predictions_clipped %}
+<div class="alert alert-warning mt-3" role="alert">{{ forecast_result.negative_predictions_clipped }} negative prediction(s) were displayed as ₹0. A straight-line model can extrapolate below zero, which is not realistic for sales.</div>
+{% endif %}
+
+<section class="content-panel mt-4">
+    <div class="panel-heading"><div><h2>Historical Sales and Forecast</h2><p>Blue shows actual aggregated sales; orange shows predictions.</p></div><span class="panel-tag">{{ forecast_result.model_name }}</span></div>
+    <div class="forecast-chart-wrap"><canvas id="forecast-chart" aria-label="Historical sales and future forecast chart" role="img"></canvas></div>
+</section>
+
+<section class="content-panel mt-4">
+    <div class="panel-heading"><div><h2>Predicted Sales</h2><p>Future estimates are separate from historical observations.</p></div><span class="panel-tag">{{ forecast_result.frequency_label }}</span></div>
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead><tr><th scope="col">Forecast Date</th><th scope="col" class="text-end">Predicted Sales</th></tr></thead>
+            <tbody>
+                {% for index in range(forecast_result.forecast_dates|length) %}
+                <tr><td>{{ forecast_result.forecast_dates[index] }}</td><td class="text-end">₹{{ "{:,.0f}".format(forecast_result.forecast_sales[index]) }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="content-panel mt-4">
+    <div class="panel-heading"><div><h2>Forecast Results</h2><p>Validation MAE and RMSE will be calculated using later historical observations.</p></div></div>
+    <div class="chart-placeholder compact-chart"><div class="chart-empty-state"><i class="bi bi-graph-up"></i><strong>Choose settings and generate a forecast</strong><span>The model will use {{ dataset_filename }}.</span></div></div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if forecast_result %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script id="forecast-chart-data" type="application/json">{{ chart_data|tojson }}</script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}
